@@ -9,7 +9,7 @@ This app was modified using Chat Gpt from OpenAI. While I tried my best to imple
 ## Installation
 
 1. Clone the repository or download the ZIP file.
-2. Create a `config.ini` file in the same directory as `process_watcher.py` using the example file `config.ini.dist`.
+2. Create a `config.ini` file in the same directory as `process_watcher.py` using the example file `config-sample.ini
 3. Add your processes to the `[Processes]` section of the `config.ini` file.
 3. Add your Telegram chat ID and bot token to the `[Telegram]` section of the `config.ini` file (optional).
 
