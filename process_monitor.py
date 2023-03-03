@@ -6,21 +6,15 @@ import requests
 import sys
 import configparser
 
-if os.name == 'nt': # for Windows
+if os.name == 'nt':
     import msvcrt
-else: # for Linux and Mac
+else:
     import select
 
-logging.basicConfig(
-    filename='monitor.log',
-    level=logging.INFO,
-    format='%(asctime)s %(message)s'
-)
+logging.basicConfig(filename='monitor.log', level=logging.INFO, format='%(asctime)s %(message)s')
 
-# Get a list of all configuration files in the current directory
 config_files = [f for f in os.listdir('.') if f.endswith('.ini')]
 
-# Load each configuration file into a dictionary
 config = {}
 for config_file in config_files:
     config_parser = configparser.ConfigParser()
@@ -31,12 +25,12 @@ for config_file in config_files:
 def check_update_file(file_path):
     return os.path.exists(file_path)
 
-def check_process(process_name):
+def check_process(process_path):
     for process in psutil.process_iter():
         try:
-            if process.name() == process_name:
+            if process.name() == os.path.basename(process_path) and process.exe() == process_path:
                 return True
-        except psutil.NoSuchProcess:
+        except (psutil.AccessDenied, psutil.NoSuchProcess):
             pass
     return False
 
@@ -47,9 +41,9 @@ def start_process(process_path):
         else:
             os.system(process_path)
         logging.info(f'Process started: {process_path}')
-    except Exception as e:
-        logging.error(f'Could not start process: {process_path}, {e}')
-        send_telegram_message(f'Could not start process: {process_path}, {e}')
+    except Exception as error:
+        logging.error(f'Could not start process: {process_path}, {error}')
+        send_telegram_message(f'Could not start process: {process_path}, {error}')
 
 def send_telegram_message(message, user):
     telegram = config[user]['Telegram']
@@ -62,8 +56,8 @@ def send_telegram_message(message, user):
         response = requests.post(url, data=data)
         response.raise_for_status()
         logging.info(f'Telegram notification sent: {message}')
-    except requests.exceptions.RequestException as e:
-        logging.error(f'Could not send Telegram notification: {e}')
+    except requests.exceptions.RequestException as error:
+        logging.error(f'Could not send Telegram notification: {error}')
 
 process_status = {}
 while True:
@@ -73,19 +67,21 @@ while True:
         update_file = settings['file']
         if not check_update_file(update_file):
             for process_name, process_path in processes.items():
-                if process_name not in process_status or not check_process(process_name):
-                    process_status[process_name] = True
-                    start_process(process_path)
+                if process_name not in process_status or not process_status[process_name]:
+                    if check_process(process_path):
+                        process_status[process_name] = True
+                    else:
+                        start_process(process_path)
+                        process_status[process_name] = True
+                else:
+                    logging.info(f'Process already running: {process_name}')
         else:
             process_status = {}
-        time.sleep(int(settings['interval']))
-    
-    # Check for user input
-    if os.name == 'nt': # for Windows
-        if msvcrt.kbhit() and msvcrt.getch() == b'q':
-            break
-    else: # for Linux and Mac
-        if select.select([sys.stdin], [], [], 0) == ([sys.stdin], [], []):
-            input_string = sys.stdin.readline().strip()
-            if input_string == "exit":
-                break
+        start_time = time.monotonic()
+        while time.monotonic() < start_time + int(settings['interval']):
+            if os.name == 'nt' and msvcrt.kbhit() and msvcrt.getch() == b'q':
+                sys.exit()
+            elif os.name != 'nt' and select.select([sys.stdin], [], [], 0) == ([sys.stdin], [], []):
+                input_string = sys.stdin.readline().strip()
+                if input_string == "exit":
+                    sys.exit()
