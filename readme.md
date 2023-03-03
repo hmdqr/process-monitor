@@ -76,11 +76,11 @@ Please keep in mind that this app is still in development, and we appreciate you
 
 This app is a Python script that monitors a list of processes and starts them if they are not running. It can also notify you via Telegram if a process is started or if there is an error.
 
-### Q: How do I use this app?
+### How do I use this app?
 
 First, you need to install Python 3 and the `psutil` and `requests` modules. Then, create a configuration file named `config.ini` in the same directory as the script. In the configuration file, list the processes you want to monitor, along with their paths and update files. You can also configure the interval between checks and your Telegram bot credentials for notifications.
 
-### Q: Can I use this app on Windows and Linux?
+### Can I use this app on Windows and Linux?
 
 Yes, it should work on windows and linux. 
 
@@ -88,15 +88,14 @@ Yes, it should work on windows and linux.
 
 On Windows, press the `q` key. On Linux, type `exit` and press `Enter`.
 
-### Q: Can I add multiple users with their own processes to monitor?
+### Can I add multiple users with their own processes to monitor?
 
 Yes, you can create a separate configuration file for each user, and list them in the same directory as the script with the extension `.ini`. The script will load all configuration files in the directory.
 
-### Q: Is this app ready for production use?
+### Is this app ready for production use?
 
 No! This app is still under development and has not been thoroughly tested. Use it at your own risk.
 
 ## Contributing
 
 This script is still under development and may contain bugs or errors. Contributions are welcome! Please create a pull request or open an issue if you find any bugs or have any suggestions.
-
